@@ -1,0 +1,60 @@
+ext {
+    def Properties props = new Properties()
+    props.load(new FileInputStream(file('local.properties')))
+
+    android = [
+            sdk   : props["sdk.dir"],
+            target: "android-24"
+    ]
+
+    libGroup = 'com.siimkinks.unicorn'
+    releaseVersion = '0.1.0'
+
+    buildToolsVersion = '25.0.0'
+    compileSdkVersion = 25
+    minSdkVersion = 19
+
+    androidAptVersion = '1.8'
+    androidPluginVersion = '2.2.2'
+    androidSupportLibsVersion = '25.0.0'
+    autoValueVersion = '1.3'
+    autoValueAnnotationsVersion = '1.3'
+    bintrayGradlePluginVersion = '1.3.1'
+    butterknifeVersion = '8.4.0'
+    daggerVersion = '2.7'
+    javaxInjectVersion = '1'
+    junitVersion = '4.12'
+    kotlinVersion = '1.1-M02'
+    mockitoVersion = '1.10.19'
+    rxJavaVersion = '1.2.1'
+    supportTestRunnerVersion = '0.5'
+    truthVersion = '0.28'
+
+    libraries = [
+            androidApt                  : "com.neenbedankt.gradle.plugins:android-apt:${androidAptVersion}",
+            androidPlugin               : "com.android.tools.build:gradle:$androidPluginVersion",
+            autoValue                   : "com.google.auto.value:auto-value:${autoValueVersion}",
+            autoValueAnnotations        : "com.jakewharton.auto.value:auto-value-annotations:${autoValueAnnotationsVersion}",
+            bintrayGradlePlugin         : "com.jfrog.bintray.gradle:gradle-bintray-plugin:${bintrayGradlePluginVersion}",
+            butterknife                 : "com.jakewharton:butterknife:$butterknifeVersion",
+            butterknifeCompiler         : "com.jakewharton:butterknife-compiler:$butterknifeVersion",
+            dagger                      : "com.google.dagger:dagger:${daggerVersion}",
+            daggerCompiler              : "com.google.dagger:dagger-compiler:${daggerVersion}",
+            javaxInject                 : "javax.inject:javax.inject:${javaxInjectVersion}",
+            kotlinGradlePlugin          : "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}",
+            kotlinReflect               : "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}",
+            kotlinStdLib                : "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
+            mockito                     : "org.mockito:mockito-core:$mockitoVersion",
+            rxJava                      : "io.reactivex:rxjava:${rxJavaVersion}",
+            supportAnnotations          : files("${android.sdk}/extras/android/support/annotations/android-support-annotations.jar"),
+            supportAnnotationsForTesting: "com.android.support:support-annotations:$androidSupportLibsVersion",
+            supportV7                   : "com.android.support:appcompat-v7:${androidSupportLibsVersion}",
+            unicornCore                 : "$libGroup:unicorn-core:$releaseVersion",
+            unicorn                     : "$libGroup:unicorn:$releaseVersion",
+
+            // testing
+            junit                       : "junit:junit:${junitVersion}",
+            truth                       : "com.google.truth:truth:${truthVersion}",
+            supportTestRunner           : "com.android.support.test:runner:${supportTestRunnerVersion}",
+    ]
+}
