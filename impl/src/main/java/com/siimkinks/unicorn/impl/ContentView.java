@@ -29,6 +29,14 @@ import static com.siimkinks.unicorn.Contracts.mustBeFalse;
 import static com.siimkinks.unicorn.Contracts.mustBeNull;
 import static com.siimkinks.unicorn.Contracts.notNull;
 
+/**
+ * An implementation of the {@link ContentViewContract}.
+ *
+ * @param <GraphProvider>
+ *         Dependency graph provider type
+ * @param <PresenterType>
+ *         View presenter type
+ */
 public abstract class ContentView<GraphProvider extends DependencyGraphProvider, PresenterType extends PresenterContract> implements ContentViewContract<GraphProvider> {
     @NonNull
     private final BehaviorSubject<LifecycleEvent> lifecycleEvents = BehaviorSubject.create(UNKNOWN);
@@ -38,7 +46,7 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
     private CompositeSubscription visibilitySubscriptions = null;
     @Nullable
     private View rootView;
-    private boolean viewsBound = false;
+    private volatile boolean viewsBound = false;
     @Nullable
     private Unbinder unbinder;
 
@@ -80,6 +88,14 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         setRootView(null);
     }
 
+    /**
+     * Injection point for initializing this view's presenter.
+     * <p>
+     * Annotate this method with {@code @Inject} annotation and your DI should do the rest.
+     *
+     * @param presenter
+     *         This view's presenter
+     */
     protected abstract void initializePresenter(@NonNull PresenterType presenter);
 
     @Override
@@ -98,6 +114,9 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         return (ViewGroup) rootView;
     }
 
+    /**
+     * Binds all views and handlers to their {@link ButterKnife} annotated fields.
+     */
     @MainThread
     protected final void bindViews() {
         notNull(rootView, "Cannot bind views if rootview is null");
@@ -105,6 +124,9 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         viewsBound = true;
     }
 
+    /**
+     * Unbinds all {@link ButterKnife} views and handlers.
+     */
     @MainThread
     protected final void unbindViews() {
         viewsBound = false;
@@ -120,6 +142,9 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         return BackPressResult.NAVIGATE_BACK;
     }
 
+    /**
+     * Finish this view.
+     */
     public final void finish() {
         navigator.finish(this);
     }
@@ -130,12 +155,24 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         return rootView.getContext();
     }
 
+    /**
+     * Convenience method for getting {@link Resources}.
+     *
+     * @return Android resources
+     */
     @NonNull
     protected final Resources getResources() {
         notNull(rootView, "Cannot get resources before onCreate event");
         return rootView.getResources();
     }
 
+    /**
+     * Hook {@link Observer} into this view's lifecycle.
+     *
+     * @param subscriber
+     *         Lifecycle observer
+     * @return Subscription for hooked lifecycle observing
+     */
     @NonNull
     public final Subscription hookIntoLifecycle(@NonNull Observer<LifecycleEvent> subscriber) {
         final Subscription subscription = lifecycleEvents.subscribe(subscriber);
@@ -143,6 +180,12 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         return subscription;
     }
 
+    /**
+     * Unsubscribes and removes subscription from the lifecycle observing subscriptions list.
+     *
+     * @param subscription
+     *         Subscription returned from the {@link #hookIntoLifecycle(Observer)} method
+     */
     public final void unhookFromLifecycle(@NonNull Subscription subscription) {
         removeSubscriptionForLife(subscription);
     }
@@ -154,12 +197,6 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         return lifecycleEvents.getValue();
     }
 
-    /**
-     * Add subscription that should be active as long as view is alive.
-     *
-     * @param subscription
-     *         Subscription to track
-     */
     @Override
     public final void addSubscriptionForLife(@NonNull Subscription subscription) {
         mustBeFalse(lifeSubscriptions.isUnsubscribed(), "Tried to leak subscription for life but view is already dead. Check your code");
@@ -167,7 +204,8 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
     }
 
     /**
-     * Remove subscription add by the {@link #addSubscriptionForLife(Subscription)} method.
+     * Unsubscribes and removes subscription added by the {@link #addSubscriptionForLife(Subscription)}
+     * method.
      *
      * @param subscription
      *         Subscription to remove
@@ -177,11 +215,24 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         lifeSubscriptions.remove(subscription);
     }
 
+    /**
+     * Add subscription that should be active as long as view is visible.
+     *
+     * @param subscription
+     *         Subscription to track
+     */
     public final void addSubscriptionForVisibility(@NonNull Subscription subscription) {
         notNull(visibilitySubscriptions, "Tried to add subscription when view is not visible. Check your code");
         visibilitySubscriptions.add(subscription);
     }
 
+    /**
+     * Unsubscribes and removes subscription added by the {@link #addSubscriptionForVisibility(Subscription)}
+     * method.
+     *
+     * @param subscription
+     *         Subscription to remove
+     */
     public final void removeSubscriptionForVisibility(@NonNull Subscription subscription) {
         subscription.unsubscribe();
         if (visibilitySubscriptions != null) {
@@ -201,10 +252,16 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
         return super.equals(o) || o.getClass().getSimpleName().equals(getClass().getSimpleName());
     }
 
+    /**
+     * @return {@code true} when this view is destroyed
+     */
     public final boolean isDestroyed() {
         return latestLifecycleEvent() == DESTROY;
     }
 
+    /**
+     * @return {@code true} when the views are bound
+     */
     public final boolean isViewsBound() {
         return viewsBound;
     }

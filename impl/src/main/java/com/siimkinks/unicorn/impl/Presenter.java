@@ -14,8 +14,16 @@ import rx.subscriptions.Subscriptions;
 
 import static com.siimkinks.unicorn.Contracts.notNull;
 
+/**
+ * An implementation of the {@link PresenterContract}.
+ *
+ * @param <ViewType>
+ *         Associated view interface type
+ */
 public abstract class Presenter<ViewType extends ContentViewContract> implements PresenterContract<ViewType> {
+    @NonNull
     protected final Navigator navigator;
+    @Nullable
     protected ViewType view;
     @Nullable
     private CompositeSubscription subscriptions;
@@ -47,11 +55,25 @@ public abstract class Presenter<ViewType extends ContentViewContract> implements
         view = null;
     }
 
+    /**
+     * Add subscription that should be active as long as this presenter is active.
+     * <p>
+     * This presenter is active as long as the associated view is alive.
+     *
+     * @param subscription
+     *         Subscription to track
+     */
     protected final void addSubscription(@NonNull Subscription subscription) {
         notNull(subscriptions, "Tried to leak subscription. Check your code");
         subscriptions.add(subscription);
     }
 
+    /**
+     * Unsubscribes and removes subscription added by the {@link #addSubscription(Subscription)} method.
+     *
+     * @param subscription
+     *         Subscription to remove
+     */
     protected final void removeSubscription(@NonNull Subscription subscription) {
         subscription.unsubscribe();
         if (subscriptions != null) {

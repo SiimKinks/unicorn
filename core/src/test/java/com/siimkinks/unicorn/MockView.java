@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 
+import rx.Subscription;
+
 import static org.mockito.Mockito.spy;
 
 public class MockView implements ContentViewContract {
@@ -66,6 +68,11 @@ public class MockView implements ContentViewContract {
     @Override
     public LifecycleEvent latestLifecycleEvent() {
         return latestLifecycleEvent;
+    }
+
+    @Override
+    public void addSubscriptionForLife(@NonNull Subscription subscription) {
+
     }
 
     NavigationDetails create() {
