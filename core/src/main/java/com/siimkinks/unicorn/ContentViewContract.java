@@ -109,7 +109,7 @@ public interface ContentViewContract<GraphProvider extends DependencyGraphProvid
     LifecycleEvent latestLifecycleEvent();
 
     /**
-     * Add subscription that should be active as long as view is alive.
+     * Add subscription that should be active as long as this view is alive.
      *
      * @param subscription
      *         Subscription to track

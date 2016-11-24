@@ -32,6 +32,13 @@ public interface RootActivityContract {
     @CheckResult
     LifecycleEvent latestLifecycleEvent();
 
+    /**
+     * Hook {@link Observer} into this activity's lifecycle.
+     *
+     * @param subscriber
+     *         Lifecycle observer
+     * @return Subscription for hooked lifecycle observing
+     */
     @NonNull
     Subscription hookIntoLifecycle(@NonNull Observer<LifecycleEvent> subscriber);
 }
