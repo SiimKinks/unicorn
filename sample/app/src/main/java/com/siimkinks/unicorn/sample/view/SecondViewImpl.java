@@ -62,8 +62,8 @@ public final class SecondViewImpl extends ContentView<DIProvider, ViewPresenter>
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onStart() {
+        super.onStart();
         presenter.random();
     }
 

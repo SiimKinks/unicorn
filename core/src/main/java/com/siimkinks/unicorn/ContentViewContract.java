@@ -67,22 +67,22 @@ public interface ContentViewContract<GraphProvider extends DependencyGraphProvid
     void onCreate(@NonNull GraphProvider provider);
 
     /**
-     * Called when the view has resumed.
+     * Called when the view has started and it is now visible.
      * <p>
      * Previous lifecycle event could have been either {@link LifecycleEvent#CREATE CREATE}
-     * when the view has just been created or {@link LifecycleEvent#PAUSE PAUSE} if the view
+     * when the view has just been created or {@link LifecycleEvent#STOP STOP} if the view
      * has been brought to foreground and is visible again.
      */
     @MainThread
-    void onResume();
+    void onStart();
 
     /**
-     * Called when the view has paused.
+     * Called when the view has stopped.
      * <p>
      * This usually indicates that the view is not visible any more.
      */
     @MainThread
-    void onPause();
+    void onStop();
 
     /**
      * Called when this view is destroyed.
@@ -117,11 +117,11 @@ public interface ContentViewContract<GraphProvider extends DependencyGraphProvid
     void addSubscriptionForLife(@NonNull Subscription subscription);
 
     enum LifecycleEvent {
-        UNKNOWN, CREATE, RESUME, PAUSE, DESTROY;
+        UNKNOWN, CREATE, START, STOP, DESTROY;
 
         @CheckResult
         public boolean isVisible() {
-            return ordinal() < PAUSE.ordinal();
+            return ordinal() < STOP.ordinal();
         }
     }
 

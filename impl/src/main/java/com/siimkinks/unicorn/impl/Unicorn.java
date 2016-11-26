@@ -1,6 +1,7 @@
 package com.siimkinks.unicorn.impl;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import com.siimkinks.unicorn.ContentViewContract.LifecycleEvent;
 import com.siimkinks.unicorn.NavigationDetails;
 import com.siimkinks.unicorn.RootActivityContract;
+import com.siimkinks.unicorn.ViewManager;
 
 import rx.Observer;
 import rx.Subscription;
@@ -16,63 +18,84 @@ import rx.subscriptions.CompositeSubscription;
 
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.CREATE;
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.DESTROY;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.PAUSE;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.RESUME;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.STOP;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.START;
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.UNKNOWN;
 import static com.siimkinks.unicorn.Contracts.mustBeFalse;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Root activity delegate and an implementation of {@link RootActivityContract}.
- * <p>
- * In order for this class to work properly the following methods must be delegated to this class:
- * <p>
- * <ul>
- * <li>{@link Activity#onCreate(Bundle)}</li>
- * <li>{@link Activity#onPause()}</li>
- * <li>{@link Activity#onResume()}</li>
- * <li>{@link Activity#onDestroy()}</li>
- * </ul>
+ * Root activity handler and an implementation of {@link RootActivityContract}.
  */
-public class RootActivityDelegate implements RootActivityContract {
+public class Unicorn implements RootActivityContract, Application.ActivityLifecycleCallbacks {
     @NonNull
     private final BehaviorSubject<LifecycleEvent> lifecycleEvents = BehaviorSubject.create(UNKNOWN);
     @NonNull
     private final CompositeSubscription lifeSubscriptions = new CompositeSubscription();
     @NonNull
+    private final ViewManager viewManager;
+    @NonNull
     private final ViewGroup contentRootView;
     @NonNull
     private final NavigationDetails firstView;
+    @NonNull
+    private final Application app;
 
-    private RootActivityDelegate(@NonNull ViewGroup contentRootView,
-                                 @NonNull NavigationDetails firstView) {
-
+    private Unicorn(@NonNull ViewManager viewManager,
+                    @NonNull Activity activity,
+                    @NonNull ViewGroup contentRootView,
+                    @NonNull NavigationDetails firstView) {
+        this.viewManager = viewManager;
         this.contentRootView = contentRootView;
         this.firstView = firstView;
+        this.app = (Application) activity.getApplicationContext();
+
+        viewManager.registerActivity(this, activity);
+        lifecycleEvents.onNext(CREATE);
+
+        app.registerActivityLifecycleCallbacks(this);
     }
 
     /**
-     * Builder for {@link RootActivityDelegate}.
+     * Builder for {@link Unicorn} object.
      */
     public static Builder builder() {
         return new Builder();
     }
 
-    public void onCreate() {
+    @Override
+    public void onActivityCreated(Activity activity, Bundle bundle) {
         lifecycleEvents.onNext(CREATE);
     }
 
-    public void onStart() {
-        lifecycleEvents.onNext(RESUME);
+    @Override
+    public void onActivityStarted(Activity activity) {
+        lifecycleEvents.onNext(START);
     }
 
-    public void onStop() {
-        lifecycleEvents.onNext(PAUSE);
+    @Override
+    public void onActivityResumed(Activity activity) {
     }
 
-    public void onDestroy() {
+    @Override
+    public void onActivityPaused(Activity activity) {
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+        lifecycleEvents.onNext(STOP);
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+        app.unregisterActivityLifecycleCallbacks(this);
         lifecycleEvents.onNext(DESTROY);
         lifeSubscriptions.clear();
+        viewManager.unregisterActivity();
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
     }
 
     @NonNull
@@ -137,6 +160,8 @@ public class RootActivityDelegate implements RootActivityContract {
     }
 
     public static final class Builder {
+        ViewManager viewManager;
+        Activity activity;
         ViewGroup contentRootView;
         NavigationDetails firstView;
 
@@ -144,11 +169,35 @@ public class RootActivityDelegate implements RootActivityContract {
         }
 
         /**
+         * Self created {@link ViewManager} instance.
+         *
+         * @param viewManager
+         *         Unicorn ViewManager
+         * @return Unicorn builder
+         */
+        public Builder viewManager(@NonNull ViewManager viewManager) {
+            this.viewManager = viewManager;
+            return this;
+        }
+
+        /**
+         * Root activity.
+         *
+         * @param activity
+         *         Root activity
+         * @return Unicorn builder
+         */
+        public Builder activity(@NonNull Activity activity) {
+            this.activity = activity;
+            return this;
+        }
+
+        /**
          * The content root view where all {@link ContentView} views will be inflated.
          *
          * @param contentRootView
          *         Root view group
-         * @return Root activity delegate builder
+         * @return Unicorn builder
          */
         public Builder contentRootView(@NonNull ViewGroup contentRootView) {
             this.contentRootView = contentRootView;
@@ -160,7 +209,7 @@ public class RootActivityDelegate implements RootActivityContract {
          *
          * @param firstView
          *         First view navigation details
-         * @return Root activity delegate builder
+         * @return Unicorn builder
          */
         public Builder firstView(@NonNull NavigationDetails firstView) {
             this.firstView = firstView;
@@ -168,14 +217,16 @@ public class RootActivityDelegate implements RootActivityContract {
         }
 
         /**
-         * Build this root activity delegate object where all the required methods must delegate to.
+         * Build a Unicorn.
          *
-         * @return Root activity delegate object
+         * @return Unicorn object
          */
-        public RootActivityDelegate build() {
+        public Unicorn build() {
+            requireNonNull(viewManager, "viewManager == null");
+            requireNonNull(activity, "activity == null");
             requireNonNull(contentRootView, "contentRootView == null");
             requireNonNull(firstView, "contentRootView == null");
-            return new RootActivityDelegate(contentRootView, firstView);
+            return new Unicorn(viewManager, activity, contentRootView, firstView);
         }
     }
 }

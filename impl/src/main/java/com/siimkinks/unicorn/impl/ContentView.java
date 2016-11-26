@@ -22,8 +22,8 @@ import rx.subscriptions.CompositeSubscription;
 
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.CREATE;
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.DESTROY;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.PAUSE;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.RESUME;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.STOP;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.START;
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.UNKNOWN;
 import static com.siimkinks.unicorn.Contracts.mustBeFalse;
 import static com.siimkinks.unicorn.Contracts.mustBeNull;
@@ -64,19 +64,19 @@ public abstract class ContentView<GraphProvider extends DependencyGraphProvider,
 
     @CallSuper
     @Override
-    public void onResume() {
+    public void onStart() {
         notNull(rootView, "RootView missing when resuming view??");
         mustBeNull(visibilitySubscriptions, "Visibility subscriptions have entered illegal state");
         visibilitySubscriptions = new CompositeSubscription();
         rootView.requestFocusFromTouch();
-        lifecycleEvents.onNext(RESUME);
+        lifecycleEvents.onNext(START);
     }
 
     @CallSuper
     @Override
-    public void onPause() {
+    public void onStop() {
         unsubscribeVisibilitySubscriptions();
-        lifecycleEvents.onNext(PAUSE);
+        lifecycleEvents.onNext(STOP);
     }
 
     @CallSuper

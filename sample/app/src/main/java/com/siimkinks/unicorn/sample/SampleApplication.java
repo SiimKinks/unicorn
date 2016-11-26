@@ -4,7 +4,6 @@ import android.app.Application;
 import android.support.annotation.NonNull;
 
 import com.siimkinks.unicorn.Navigator;
-import com.siimkinks.unicorn.ViewManager;
 import com.siimkinks.unicorn.sample.di.DIProvider;
 import com.siimkinks.unicorn.sample.di.component.AppComponent;
 import com.siimkinks.unicorn.sample.di.component.DaggerAppComponent;
@@ -17,8 +16,6 @@ import javax.inject.Inject;
 import static com.siimkinks.unicorn.Contracts.notNull;
 
 public final class SampleApplication extends Application implements DIProvider {
-    @Inject
-    ViewManager viewManager;
     @Inject
     Navigator navigator;
 
@@ -43,16 +40,10 @@ public final class SampleApplication extends Application implements DIProvider {
 
     public void registerForegroundActivity(@NonNull RootActivity rootActivity) {
         uiModule = new UiModule(rootActivity);
-        viewManager.registerActivity(rootActivity);
     }
 
     public void unregisterForegroundActivity() {
         uiModule = null;
-        viewManager.unregisterActivity();
-    }
-
-    public boolean handleBackPress() {
-        return viewManager.handleBackPress();
     }
 
     @NonNull

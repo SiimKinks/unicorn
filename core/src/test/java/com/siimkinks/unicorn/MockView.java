@@ -45,13 +45,13 @@ public class MockView implements ContentViewContract {
     }
 
     @Override
-    public void onResume() {
-        latestLifecycleEvent = LifecycleEvent.RESUME;
+    public void onStart() {
+        latestLifecycleEvent = LifecycleEvent.START;
     }
 
     @Override
-    public void onPause() {
-        latestLifecycleEvent = LifecycleEvent.PAUSE;
+    public void onStop() {
+        latestLifecycleEvent = LifecycleEvent.STOP;
     }
 
     @Override

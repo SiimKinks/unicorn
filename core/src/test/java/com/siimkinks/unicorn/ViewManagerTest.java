@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.PAUSE;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.RESUME;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.STOP;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.START;
 import static com.siimkinks.unicorn.MockView.createNewView;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -130,7 +130,7 @@ public class ViewManagerTest {
 
         callOrder.verify(firstView).getViewResId();
         callOrder.verify(firstView).onCreate(graphProvider);
-        callOrder.verify(firstView).onResume();
+        callOrder.verify(firstView).onStart();
 
         assertThat(firstView.getRootView()).isNotNull();
     }
@@ -147,17 +147,17 @@ public class ViewManagerTest {
         // add
         viewManager.navigate(mockView.create());
 
-        firstViewCallOrder.verify(firstView).onPause();
+        firstViewCallOrder.verify(firstView).onStop();
         newViewCallOrder.verify(mockView).onCreate(graphProvider);
-        newViewCallOrder.verify(mockView).onResume();
+        newViewCallOrder.verify(mockView).onStart();
         assertThat(viewManager.viewStack.size()).isEqualTo(2);
 
         // finish
         viewManager.finish(mockView);
 
-        newViewCallOrder.verify(mockView).onPause();
+        newViewCallOrder.verify(mockView).onStop();
         newViewCallOrder.verify(mockView).onDestroy();
-        firstViewCallOrder.verify(firstView).onResume();
+        firstViewCallOrder.verify(firstView).onStart();
         assertThat(viewManager.viewStack.size()).isEqualTo(1);
     }
 
@@ -178,9 +178,9 @@ public class ViewManagerTest {
         // finish second view
         viewManager.handleBackPress();
 
-        newViewCallOrder.verify(mockView).onPause();
+        newViewCallOrder.verify(mockView).onStop();
         newViewCallOrder.verify(mockView).onDestroy();
-        firstViewCallOrder.verify(firstView).onResume();
+        firstViewCallOrder.verify(firstView).onStart();
         assertThat(viewManager.viewStack.size()).isEqualTo(1);
 
         // from now on back press should only notify top view of back press, but will not finish it
@@ -240,10 +240,10 @@ public class ViewManagerTest {
 
         newTopViewCallOrder.verify(newTopView).onCreate(any(DependencyGraphProvider.class));
         newTopViewCallOrder.verify(newTopView).latestLifecycleEvent();
-        newTopViewCallOrder.verify(newTopView).onResume();
+        newTopViewCallOrder.verify(newTopView).onStart();
         verifyNoMoreInteractions(newTopView);
 
-        prevTopViewCallOrder.verify(prevTopView).onPause();
+        prevTopViewCallOrder.verify(prevTopView).onStop();
         prevTopViewCallOrder.verify(prevTopView).latestLifecycleEvent();
         prevTopViewCallOrder.verify(prevTopView).onDestroy();
         verifyNoMoreInteractions(prevTopView);
@@ -260,7 +260,7 @@ public class ViewManagerTest {
 
         viewManager.finish(firstView);
 
-        verify(firstView).onPause();
+        verify(firstView).onStop();
         verify(firstView).onDestroy();
         verify(firstView).latestLifecycleEvent();
         verifyNoMoreInteractions(firstView);
@@ -310,7 +310,7 @@ public class ViewManagerTest {
         verify(secondView).onDestroy();
         verifyNoMoreInteractions(secondView);
         newViewCallOrder.verify(newView).onCreate(graphProvider);
-        newViewCallOrder.verify(newView).onResume();
+        newViewCallOrder.verify(newView).onStart();
         newViewCallOrder.verifyNoMoreInteractions();
     }
 
@@ -362,11 +362,11 @@ public class ViewManagerTest {
         assertThat(viewManager.viewStack.size()).isEqualTo(3);
         verifyNoMoreInteractions(firstView);
 
-        verify(thirdView).onPause();
+        verify(thirdView).onStop();
         verifyNoMoreInteractions(thirdView);
 
         verify(secondView).latestLifecycleEvent();
-        verify(secondView).onResume();
+        verify(secondView).onStart();
         verifyNoMoreInteractions(secondView);
     }
 
@@ -446,7 +446,7 @@ public class ViewManagerTest {
         verify(thirdView).onDestroy();
 
         verify(secondView).latestLifecycleEvent();
-        verify(secondView).onResume();
+        verify(secondView).onStart();
         verifyNoMoreInteractions(secondView);
         assertThat(viewManager.viewStack.size()).isEqualTo(1);
     }
@@ -498,27 +498,27 @@ public class ViewManagerTest {
         assertThat(viewManager.viewStack.size()).isEqualTo(1);
         assertThat(viewManager.viewStack.peek()).isNotEqualTo(secondViewNavDetails);
         verify(firstView).latestLifecycleEvent();
-        verify(firstView).onPause();
-        verify(firstView).onResume();
+        verify(firstView).onStop();
+        verify(firstView).onStart();
         verifyNoMoreInteractions(firstView);
 
         verify(secondView).onCreate(any(DependencyGraphProvider.class));
-        verify(secondView).onPause();
+        verify(secondView).onStop();
         verify(secondView).onDestroy();
         verify(secondView, times(2)).latestLifecycleEvent();
         verifyNoMoreInteractions(secondView);
     }
 
     @Test
-    public void finishFromOnResume() {
+    public void finishFromOnStart() {
         final MockView firstView = rootActivity.firstView;
         mockActivity();
         reset(firstView);
 
         final MockView secondView = spy(new MockView() {
             @Override
-            public void onResume() {
-                super.onResume();
+            public void onStart() {
+                super.onStart();
                 viewManager.finish(this);
             }
         });
@@ -530,27 +530,27 @@ public class ViewManagerTest {
         assertThat(viewManager.viewStack.size()).isEqualTo(1);
         assertThat(viewManager.viewStack.peek()).isNotEqualTo(secondViewNavDetails);
         verify(firstView).latestLifecycleEvent();
-        verify(firstView).onPause();
-        verify(firstView).onResume();
+        verify(firstView).onStop();
+        verify(firstView).onStart();
         verifyNoMoreInteractions(firstView);
 
         verify(secondView).onCreate(any(DependencyGraphProvider.class));
-        verify(secondView).onResume();
-        verify(secondView).onPause();
+        verify(secondView).onStart();
+        verify(secondView).onStop();
         verify(secondView).onDestroy();
         verify(secondView, times(2)).latestLifecycleEvent();
         verifyNoMoreInteractions(secondView);
     }
 
     @Test
-    public void finishFromOnPause() {
+    public void finishFromOnStop() {
         final MockView firstView = rootActivity.firstView;
         mockActivity();
 
         final MockView secondView = spy(new MockView() {
             @Override
-            public void onPause() {
-                super.onPause();
+            public void onStop() {
+                super.onStop();
                 viewManager.finish(this);
             }
         });
@@ -570,12 +570,12 @@ public class ViewManagerTest {
         viewManager.navigate(thirdViewNavDetails);
 
         verifyNoMoreInteractions(firstView);
-        verify(secondView).onPause();
+        verify(secondView).onStop();
         verify(secondView).onDestroy();
         verify(secondView).latestLifecycleEvent();
         verifyNoMoreInteractions(firstView);
         verify(thirdView).onCreate(any(DependencyGraphProvider.class));
-        verify(thirdView).onResume();
+        verify(thirdView).onStart();
         verify(thirdView).latestLifecycleEvent();
         verifyNoMoreInteractions(thirdView);
     }
@@ -607,7 +607,7 @@ public class ViewManagerTest {
     @Test(expected = IllegalStateException.class)
     public void viewManagerThrowsIfActivityRestartedTwice() {
         mockActivity();
-        viewManager.registerActivity(rootActivity);
+        viewManager.registerActivity(rootActivity, rootActivity);
     }
 
     @Test
@@ -619,7 +619,7 @@ public class ViewManagerTest {
         final ContentViewContract topView = top.view();
         assertThat(views.get(views.size() - 1) != topView).isTrue();
         verify(topView).onCreate(any(DependencyGraphProvider.class));
-        verify(topView).onResume();
+        verify(topView).onStart();
 
         final ArrayDeque<NavigationDetails> stack = viewManager.viewStack.clone();
         stack.poll();
@@ -698,11 +698,11 @@ public class ViewManagerTest {
         }
         final MockView topView = views.get(views.size() - 1);
 
-        rootActivity.emitLifecycleEvent(PAUSE);
-        rootActivity.emitLifecycleEvent(RESUME);
+        rootActivity.emitLifecycleEvent(STOP);
+        rootActivity.emitLifecycleEvent(START);
 
-        verify(topView).onPause();
-        verify(topView).onResume();
+        verify(topView).onStop();
+        verify(topView).onStart();
 
         for (int i = 0; i < views.size() - 1; i++) {
             verifyNoCallsToLifecycleCallbacks(views.get(i));
@@ -713,7 +713,7 @@ public class ViewManagerTest {
         viewManager.handleBackPress();
         final NavigationDetails firstView = viewManager.viewStack.peek();
         verify(firstView.view()).onCreate(any(DependencyGraphProvider.class));
-        verify(firstView.view()).onResume();
+        verify(firstView.view()).onStart();
     }
 
     @NonNull
@@ -721,9 +721,9 @@ public class ViewManagerTest {
         mockActivity();
         final List<MockView> views = pushThreeMockedViewsToStack();
         views.add(0, rootActivity.firstView);
-        rootActivity.emitLifecycleEvent(PAUSE);
+        rootActivity.emitLifecycleEvent(STOP);
         viewManager.unregisterActivity();
-        verify(viewManager.viewStack.peek().view()).onPause();
+        verify(viewManager.viewStack.peek().view()).onStop();
         for (MockView view : views) {
             verify(view).onDestroy();
             reset(view);
@@ -733,7 +733,7 @@ public class ViewManagerTest {
         for (NavigationDetails details : viewStack) {
             assertThat(details.needsRestart()).isTrue();
         }
-        viewManager.registerActivity(rootActivity);
+        viewManager.registerActivity(rootActivity, rootActivity);
         assertThat(viewManager.viewStack.size()).isEqualTo(views.size());
         return views;
     }
@@ -753,13 +753,13 @@ public class ViewManagerTest {
         viewManager.finish(secondView);
 
         verify(firstView).latestLifecycleEvent();
-        verify(firstView).onPause();
-        verify(firstView).onResume();
+        verify(firstView).onStop();
+        verify(firstView).onStart();
         verifyNoMoreInteractions(firstView);
 
         verify(secondView).onCreate(any(DependencyGraphProvider.class));
-        verify(secondView).onResume();
-        verify(secondView).onPause();
+        verify(secondView).onStart();
+        verify(secondView).onStop();
         verify(secondView).onDestroy();
         verify(secondView, times(2)).latestLifecycleEvent();
         verifyNoMoreInteractions(secondView);
@@ -769,7 +769,7 @@ public class ViewManagerTest {
     private void mockActivity() {
         doReturn(inflater).when(rootActivity).getLayoutInflater();
         doReturn(rootView).when(rootActivity).getContentRootView();
-        viewManager.registerActivity(rootActivity);
+        viewManager.registerActivity(rootActivity, rootActivity);
         doNothing().when(viewManager).transitionBetween(any(NavigationDetails.class), any(NavigationDetails.class));
     }
 
@@ -811,8 +811,8 @@ public class ViewManagerTest {
 
     private static void verifyNoCallsToLifecycleCallbacks(@NonNull ContentViewContract viewContract) {
         verify(viewContract, never()).onCreate(any(DependencyGraphProvider.class));
-        verify(viewContract, never()).onPause();
-        verify(viewContract, never()).onResume();
+        verify(viewContract, never()).onStop();
+        verify(viewContract, never()).onStart();
         verify(viewContract, never()).onDestroy();
     }
 }

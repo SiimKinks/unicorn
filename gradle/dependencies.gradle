@@ -10,7 +10,7 @@ ext {
     libGroup = 'com.siimkinks.unicorn'
     releaseVersion = '0.1.0'
 
-    buildToolsVersion = '25.0.0'
+    buildToolsVersion = '25.0.1'
     compileSdkVersion = 25
     minSdkVersion = 19
 

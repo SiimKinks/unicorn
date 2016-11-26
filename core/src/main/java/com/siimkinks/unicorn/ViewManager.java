@@ -24,8 +24,8 @@ import rx.Observer;
 import static com.siimkinks.unicorn.ContentViewContract.BackPressResult.NAVIGATE_BACK;
 import static com.siimkinks.unicorn.ContentViewContract.BackPressResult.STAY_ON_VIEW;
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.DESTROY;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.PAUSE;
-import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.RESUME;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.STOP;
+import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.START;
 import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.UNKNOWN;
 import static com.siimkinks.unicorn.Contracts.allMustBeBeNull;
 import static com.siimkinks.unicorn.Contracts.mustBeFalse;
@@ -45,6 +45,8 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
     private final GraphProvider graphProvider;
 
     @Nullable
+    private RootActivityContract activityContract;
+    @Nullable
     private Activity foregroundActivity;
     private LayoutInflater inflater;
     private ViewGroup contentRootView;
@@ -59,19 +61,21 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
      * <p>
      * A good place for that is {@code {@link Activity#onCreate(Bundle)}} for example.
      *
-     * @param activity
+     * @param activityContract
      *         that one root activity
      */
     @MainThread
-    public final void registerActivity(@NonNull RootActivityContract activity) {
+    public final void registerActivity(@NonNull RootActivityContract activityContract,
+                                       @NonNull Activity rootActivity) {
         allMustBeBeNull("Trying to register new foreground activity, but old resources are not cleaned",
-                foregroundActivity, contentRootView, inflater);
-        this.foregroundActivity = (Activity) activity;
+                foregroundActivity, this.activityContract, contentRootView, inflater);
+        this.activityContract = activityContract;
+        this.foregroundActivity = rootActivity;
         this.inflater = foregroundActivity.getLayoutInflater();
-        this.contentRootView = activity.getContentRootView();
-        activity.hookIntoLifecycle(this);
+        this.contentRootView = activityContract.getContentRootView();
+        activityContract.hookIntoLifecycle(this);
         if (viewStack.isEmpty()) {
-            renderFirstView(activity.getFirstView());
+            renderFirstView(activityContract.getFirstView());
         } else {
             reRenderTopView();
         }
@@ -84,6 +88,7 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
      */
     @MainThread
     public final void unregisterActivity() {
+        activityContract = null;
         foregroundActivity = null;
         contentRootView = null;
         inflater = null;
@@ -106,14 +111,14 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
     @Override
     public void onNext(LifecycleEvent lifecycleEvent) {
         switch (lifecycleEvent) {
-            case PAUSE:
-                pauseTopView();
+            case STOP:
+                stopTopView();
                 break;
-            case RESUME:
-                // we only resume top view if parents' last lifecycle was PAUSE -- otherwise
+            case START:
+                // we only start top view if parents' last lifecycle was STOP -- otherwise
                 // we violate view contract
-                if (latestParentLifecycleEvent == PAUSE) {
-                    resumeTopView();
+                if (latestParentLifecycleEvent == STOP) {
+                    startTopView();
                 }
                 break;
             default:
@@ -190,7 +195,7 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
     @MainThread
     private void pushViewToStack(@NonNull NavigationDetails newViewNavigationDetails, boolean newInstance) {
         final ContentViewContract view = newViewNavigationDetails.view();
-        final NavigationDetails prevView = pauseTopView();
+        final NavigationDetails prevView = stopTopView();
         viewStack.push(newViewNavigationDetails);
 
         transitionBetween(newViewNavigationDetails, prevView);
@@ -205,19 +210,19 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
             view.onCreate(graphProvider);
         }
         if (view.latestLifecycleEvent() != DESTROY) { // check if view called finish in onCreate
-            view.onResume();
+            view.onStart();
         }
     }
 
     @Nullable
-    private NavigationDetails pauseTopView() {
+    private NavigationDetails stopTopView() {
         NavigationDetails topView = null;
         if (!viewStack.isEmpty()) {
             topView = viewStack.peek();
             // prev view waits for restart (aka destroyed), so contract
             // permits us from calling any lifecycle methods on it
             if (!topView.needsRestart()) {
-                topView.view().onPause();
+                topView.view().onStop();
             }
         }
         return topView;
@@ -226,13 +231,13 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
     /**
      * This method is intended to be called only when activity resumes itself!
      */
-    private void resumeTopView() {
+    private void startTopView() {
         if (!viewStack.isEmpty()) {
             final NavigationDetails topView = viewStack.peek();
 
-            mustBeFalse(topView.needsRestart(), "Tried to resume top view that needs restart");
+            mustBeFalse(topView.needsRestart(), "Tried to start top view that needs restart");
 
-            topView.view().onResume();
+            topView.view().onStart();
         }
     }
 
@@ -269,12 +274,12 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
         final ContentViewContract removedView = removed.view();
         final LifecycleEvent latestLifecycleEvent = removedView.latestLifecycleEvent();
         // if we are top we enter normal finish flow
-        // if last lifecycle event was PAUSE then view called finish unexpectedly in onPause and we enter unconventional flow
-        if (top && latestLifecycleEvent != PAUSE) {
-            removedView.onPause();
+        // if last lifecycle event was STOP then view called finish unexpectedly in onStop and we enter unconventional flow
+        if (top && latestLifecycleEvent != STOP) {
+            removedView.onStop();
         }
         removedView.onDestroy();
-        if (top && latestLifecycleEvent != PAUSE) {
+        if (top && latestLifecycleEvent != STOP) {
             final NavigationDetails newTop = viewStack.peek();
             if (newTop != null) {
                 if (newTop.needsRestart()) {
@@ -285,9 +290,9 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
                 } else {
                     transitionBetween(newTop, removed);
                     final ContentViewContract newTopView = newTop.view();
-                    // if on destroy new view is opened then resume for this newly added view is already called
-                    if (newTopView.latestLifecycleEvent() != RESUME) {
-                        newTopView.onResume();
+                    // if onDestroy new view is opened then start for this newly added view is already called
+                    if (newTopView.latestLifecycleEvent() != START) {
+                        newTopView.onStart();
                     }
                 }
             }
@@ -360,10 +365,10 @@ public class ViewManager<GraphProvider extends DependencyGraphProvider> implemen
 
     @CheckResult
     private boolean isActivityShown() {
-        if (foregroundActivity == null) {
+        if (activityContract == null) {
             return false;
         }
-        return ((RootActivityContract) foregroundActivity).latestLifecycleEvent().isVisible();
+        return activityContract.latestLifecycleEvent().isVisible();
     }
 }
 
