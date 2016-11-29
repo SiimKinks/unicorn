@@ -30,7 +30,7 @@ All updates can be found in the [CHANGELOG](CHANGELOG.md).
 Bugs and Feedback
 -----------------
 
-**For bugs, questions and discussions please use the [Github Issues](https://github.com/SiimKinks/sqlitemagic/issues).**
+**For bugs, questions and discussions please use the [Github Issues](https://github.com/SiimKinks/unicorn/issues).**
 
 License
 --------
