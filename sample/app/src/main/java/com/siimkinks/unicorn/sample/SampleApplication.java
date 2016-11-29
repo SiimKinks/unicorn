@@ -13,49 +13,50 @@ import com.siimkinks.unicorn.sample.di.module.UiModule;
 
 import javax.inject.Inject;
 
-import static com.siimkinks.unicorn.Contracts.notNull;
+import static java.util.Objects.requireNonNull;
+
 
 public final class SampleApplication extends Application implements DIProvider {
-    @Inject
-    Navigator navigator;
+  @Inject
+  Navigator navigator;
 
-    private AppComponent appComponent;
-    private UiModule uiModule;
+  private AppComponent appComponent;
+  private UiModule uiModule;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        final AppComponent appComponent = DaggerAppComponent.builder()
-                .applicationModule(new ApplicationModule(this))
-                .build();
-        appComponent.inject(this);
-        this.appComponent = appComponent;
-    }
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    final AppComponent appComponent = DaggerAppComponent.builder()
+        .applicationModule(new ApplicationModule(this))
+        .build();
+    appComponent.inject(this);
+    this.appComponent = appComponent;
+  }
 
-    @NonNull
-    @Override
-    public Navigator navigator() {
-        return navigator;
-    }
+  @NonNull
+  @Override
+  public Navigator navigator() {
+    return navigator;
+  }
 
-    public void registerForegroundActivity(@NonNull RootActivity rootActivity) {
-        uiModule = new UiModule(rootActivity);
-    }
+  public void registerForegroundActivity(@NonNull RootActivity rootActivity) {
+    uiModule = new UiModule(rootActivity);
+  }
 
-    public void unregisterForegroundActivity() {
-        uiModule = null;
-    }
+  public void unregisterForegroundActivity() {
+    uiModule = null;
+  }
 
-    @NonNull
-    @Override
-    public AppComponent appComponent() {
-        return appComponent;
-    }
+  @NonNull
+  @Override
+  public AppComponent appComponent() {
+    return appComponent;
+  }
 
-    @NonNull
-    @Override
-    public UiComponent uiComponent() {
-        notNull(uiModule, "Cannot build new UI component if there is no UI module");
-        return appComponent.uiComponent(uiModule);
-    }
+  @NonNull
+  @Override
+  public UiComponent uiComponent() {
+    requireNonNull(uiModule, "Cannot build new UI component if there is no UI module");
+    return appComponent.uiComponent(uiModule);
+  }
 }

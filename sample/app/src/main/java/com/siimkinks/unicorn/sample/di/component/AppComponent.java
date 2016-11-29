@@ -11,13 +11,13 @@ import dagger.Component;
 
 @Singleton
 @Component(modules = {
-        ApplicationModule.class,
+    ApplicationModule.class,
 })
 public interface AppComponent {
-    void inject(SampleApplication application);
+  void inject(SampleApplication application);
 
-    void inject(RootActivity activity);
+  void inject(RootActivity activity);
 
-    /* Sub-Components */
-    UiComponent uiComponent(UiModule uiModule);
+  /* Sub-Components */
+  UiComponent uiComponent(UiModule uiModule);
 }

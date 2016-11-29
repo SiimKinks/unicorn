@@ -13,23 +13,33 @@ import javax.inject.Inject;
 @PerView
 final class ViewPresenter extends Presenter<View> {
 
-    @SuppressWarnings("unchecked")
-    @Inject
-    ViewPresenter(Navigator navigator) {
-        super(navigator);
-    }
+  @NonNull
+  private String latestMessage = "";
 
-    @Override
-    public void hookInto(@NonNull View view) {
-        super.hookInto(view);
-        view.renderMessage("Hello world!");
-    }
+  @SuppressWarnings("unchecked")
+  @Inject
+  ViewPresenter(Navigator navigator) {
+    super(navigator);
+  }
 
-    void goToSecondView() {
-        SecondViewImpl.go(navigator);
-    }
+  @Override
+  public void hookInto(@NonNull View view) {
+    super.hookInto(view);
+    view.renderMessage("Hello world!");
+  }
 
-    void random() {
-        view.renderMessage("This is a random number: " + new Random().nextInt());
-    }
+  void goToSecondView() {
+    SecondView.go(navigator);
+  }
+
+  void goToThirdView() {
+    ThirdView
+        .create(latestMessage)
+        .go(navigator);
+  }
+
+  void random() {
+    latestMessage = "This is a random number: " + new Random().nextInt();
+    view.renderMessage(latestMessage);
+  }
 }

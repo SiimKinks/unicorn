@@ -11,15 +11,15 @@ import dagger.Provides;
 
 @Module
 public final class UiModule {
-    private final Activity foregroundActivity;
+  private final Activity foregroundActivity;
 
-    public UiModule(@NonNull RootActivity foregroundActivity) {
-        this.foregroundActivity = foregroundActivity;
-    }
+  public UiModule(@NonNull RootActivity foregroundActivity) {
+    this.foregroundActivity = foregroundActivity;
+  }
 
-    @PerView
-    @Provides
-    public Activity provideForegroundActivity() {
-        return foregroundActivity;
-    }
+  @PerView
+  @Provides
+  public Activity provideForegroundActivity() {
+    return foregroundActivity;
+  }
 }

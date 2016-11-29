@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
  * Application dependency graph provider
  */
 public interface DependencyGraphProvider {
-    @NonNull
-    @CheckResult
-    Navigator navigator();
+  @NonNull
+  @CheckResult
+  Navigator navigator();
 }

@@ -15,38 +15,38 @@ import static com.siimkinks.unicorn.ContentViewContract.LifecycleEvent.UNKNOWN;
 
 
 public class MockRootActivity extends Activity implements RootActivityContract {
-    private final BehaviorSubject<LifecycleEvent> lifecycleEvents = BehaviorSubject.create(UNKNOWN);
+  private final BehaviorSubject<LifecycleEvent> lifecycleEvents = BehaviorSubject.create(UNKNOWN);
 
-    final MockView firstView = MockView.createNewView();
+  final MockView firstView = MockView.createNewView();
 
-    @NonNull
-    @Override
-    public ViewGroup getContentRootView() {
-        return null;
-    }
+  @NonNull
+  @Override
+  public ViewGroup getContentRootView() {
+    return null;
+  }
 
-    @NonNull
-    @Override
-    public NavigationDetails getFirstView() {
-        return NavigationDetails.navigateTo(firstView).build();
-    }
+  @NonNull
+  @Override
+  public NavigationDetails getFirstView() {
+    return NavigationDetails.navigateTo(firstView).build();
+  }
 
-    @NonNull
-    @Override
-    public LifecycleEvent latestLifecycleEvent() {
-        return CREATE;
-    }
+  @NonNull
+  @Override
+  public LifecycleEvent latestLifecycleEvent() {
+    return CREATE;
+  }
 
-    @NonNull
-    @Override
-    public Subscription hookIntoLifecycle(@NonNull Observer<LifecycleEvent> subscriber) {
-        return lifecycleEvents.subscribe(subscriber);
-    }
+  @NonNull
+  @Override
+  public Subscription hookIntoLifecycle(@NonNull Observer<LifecycleEvent> subscriber) {
+    return lifecycleEvents.subscribe(subscriber);
+  }
 
-    public void unhookFromLifecycle(@NonNull Subscription subscription) {
-    }
+  public void unhookFromLifecycle(@NonNull Subscription subscription) {
+  }
 
-    void emitLifecycleEvent(@NonNull LifecycleEvent lifecycleEvent) {
-        lifecycleEvents.onNext(lifecycleEvent);
-    }
+  void emitLifecycleEvent(@NonNull LifecycleEvent lifecycleEvent) {
+    lifecycleEvents.onNext(lifecycleEvent);
+  }
 }

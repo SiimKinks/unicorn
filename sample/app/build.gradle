@@ -2,41 +2,41 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.neenbedankt.android-apt'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
 
-    defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
-        applicationId "com.siimkinks.unicorn.sample"
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.compileSdkVersion
+    applicationId "com.siimkinks.unicorn.sample"
+    versionCode 1
+    versionName "1.0"
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  }
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+  }
 }
 
 dependencies {
-    apt libraries.butterknifeCompiler
-    apt libraries.daggerCompiler
+  apt libraries.butterknifeCompiler
+  apt libraries.daggerCompiler
 
-    compile libraries.butterknife
-    compile libraries.dagger
-    compile libraries.rxJava
-    compile libraries.supportV7
-    compile libraries.unicornCore
-    compile libraries.unicorn
+  compile libraries.butterknife
+  compile libraries.dagger
+  compile libraries.rxJava
+  compile libraries.supportV7
+  compile libraries.unicornCore
+  compile libraries.unicorn
 
-    testCompile libraries.truth
+  testCompile libraries.truth
 
-    androidTestCompile libraries.supportAnnotationsForTesting
-    androidTestCompile libraries.supportTestRunner
-    androidTestCompile(libraries.truth) {
-        exclude group: 'junit' // Android has JUnit built in.
-    }
+  androidTestCompile libraries.supportAnnotationsForTesting
+  androidTestCompile libraries.supportTestRunner
+  androidTestCompile(libraries.truth) {
+    exclude group: 'junit' // Android has JUnit built in.
+  }
 }

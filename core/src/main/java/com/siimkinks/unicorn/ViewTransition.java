@@ -1,22 +1,34 @@
 package com.siimkinks.unicorn;
 
-import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.transition.Transition;
-import android.transition.TransitionSet;
+import android.view.View;
+import android.view.ViewGroup;
 
-final class ViewTransition extends TransitionSet {
-    private ViewTransition(@NonNull Transition enter, @Nullable Transition leave) {
-        setOrdering(ORDERING_TOGETHER);
-        addTransition(leave)
-                .addTransition(enter);
-    }
+public abstract class ViewTransition {
 
-    @NonNull
-    @CheckResult
-    static TransitionSet from(@NonNull NavigationDetails entering, @Nullable NavigationDetails leaving) {
-        return new ViewTransition(entering.animation().enter(),
-                leaving != null ? leaving.animation().leave() : AnimationDetails.DEFAULT.leave());
-    }
+  protected abstract void transition(@NonNull ViewGroup container,
+                                     @NonNull View entering,
+                                     @Nullable View leaving,
+                                     boolean push,
+                                     @NonNull Runnable transitionCompleted);
+
+  /**
+   * Called when transition needs to be cancelled.
+   * <p>
+   * This happens if view associated with this transition
+   * gets popped from stack before this transition has completed.
+   */
+  protected void cancel() {
+  }
+
+  /**
+   * Called when transition needs to be completed immediately,
+   * without any transition or transition.
+   * <p>
+   * This happens if any view is pushed to stack before this
+   * transition has completed.
+   */
+  protected void completeImmediately() {
+  }
 }

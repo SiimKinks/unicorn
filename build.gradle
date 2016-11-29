@@ -2,34 +2,34 @@
 apply from: 'gradle/dependencies.gradle'
 
 allprojects {
-    group = libGroup
-    version = releaseVersion
+  group = libGroup
+  version = releaseVersion
 
-    buildscript {
-        repositories {
-            jcenter()
-        }
-        dependencies {
-            classpath libraries.androidPlugin
-            classpath libraries.androidApt
-            classpath libraries.bintrayGradlePlugin
-
-            // NOTE: Do not place your application dependencies here; they belong
-            // in the individual module build.gradle files
-        }
-    }
-
+  buildscript {
     repositories {
-        jcenter()
-        mavenLocal()
+      jcenter()
     }
+    dependencies {
+      classpath libraries.androidPlugin
+      classpath libraries.androidApt
+      classpath libraries.bintrayGradlePlugin
+
+      // NOTE: Do not place your application dependencies here; they belong
+      // in the individual module build.gradle files
+    }
+  }
+
+  repositories {
+    jcenter()
+    mavenLocal()
+  }
 }
 
 task clean(type: Delete) {
-    delete rootProject.buildDir
+  delete rootProject.buildDir
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
-    distributionUrl = 'https://services.gradle.org/distributions/gradle-3.1-all.zip'
+  gradleVersion = '3.1'
+  distributionUrl = 'https://services.gradle.org/distributions/gradle-3.1-all.zip'
 }

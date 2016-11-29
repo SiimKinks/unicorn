@@ -13,32 +13,32 @@ import dagger.Provides;
 
 @Module
 public final class ApplicationModule {
-    private final SampleApplication application;
+  private final SampleApplication application;
 
-    public ApplicationModule(SampleApplication application) {
-        this.application = application;
-    }
+  public ApplicationModule(SampleApplication application) {
+    this.application = application;
+  }
 
-    @Provides
-    SampleApplication provideTypedApplication() {
-        return this.application;
-    }
+  @Provides
+  SampleApplication provideTypedApplication() {
+    return this.application;
+  }
 
-    @Provides
-    Application provideBaseApplication() {
-        return this.application;
-    }
+  @Provides
+  Application provideBaseApplication() {
+    return this.application;
+  }
 
-    @SuppressWarnings("unchecked")
-    @Provides
-    @Singleton
-    ViewManager provideViewManager(SampleApplication application) {
-        return new ViewManager(application);
-    }
+  @SuppressWarnings("unchecked")
+  @Provides
+  @Singleton
+  ViewManager provideViewManager(SampleApplication application) {
+    return new ViewManager(application);
+  }
 
-    @Provides
-    @Singleton
-    Navigator provideNavigator(ViewManager viewManager) {
-        return new Navigator(viewManager);
-    }
+  @Provides
+  @Singleton
+  Navigator provideNavigator(ViewManager viewManager) {
+    return new Navigator(viewManager);
+  }
 }
